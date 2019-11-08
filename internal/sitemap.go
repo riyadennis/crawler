@@ -7,6 +7,7 @@ import (
 )
 
 func SiteMap(url string) error{
+	url = fmt.Sprintf("%s://%s", "http", url)
 	resp, err := http.Get(url)
 	if err != nil{
 		return err
