@@ -1,29 +1,25 @@
 package internal
 
 import (
-	"fmt"
+	"errors"
 	"testing"
 )
 
 func TestSiteMap(t *testing.T) {
-	scenarios := []struct{
-		name string
-		url string
+	var scenarios = []struct {
+		name        string
+		url         string
 		expectedErr error
 	}{
 		{
-			name: "invalid url",
-			url: "invalid",
-			expectedErr: fmt.Errorf(
-				"Get http://invalid: dial tcp: lookup invalid" +
-					" on 10.32.160.171:53: no such host"),
+			name: "invalid host name",
+			url:  "invalid",
+			expectedErr: errors.New("invalid host name invalid"),
 		},
 		{
-			name: "invalid host",
-			url: "mmm",
-			expectedErr:fmt.Errorf(
-				"Get invalid: unsupported protocol scheme %q",
-				""),
+			name: "valid host",
+			url:  "google.co.uk",
+			expectedErr: nil,
 		},
 	}
 	for _, sc := range scenarios{
