@@ -18,7 +18,7 @@ const regExpDomain = `^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$`
 // Crawler holds data that we need to parse a web page
 type Crawler struct {
 	RootURL string
-	Links   func(*html.Node) map[int]string
+	Links   func(response []byte) map[int]string
 }
 
 // NewCrawler initialises the Crawler
@@ -42,30 +42,50 @@ func (c *Crawler) Map() error {
 	if re == nil {
 		return errors.New("unable to load data from url")
 	}
-	doc, err := html.Parse(bytes.NewReader(re))
-	if err != nil {
-		log.Fatal(err)
-	}
-	l := c.Links(doc)
+	l := c.Links(re)
 	fmt.Printf("%v", l)
 	return nil
 }
 
-func links(node *html.Node) map[int]string {
-	l := make(map[int]string)
+func links(response []byte) map[int]string {
+	if response == nil{
+		return nil
+	}
+	node, err := html.Parse(bytes.NewReader(response))
+	if err != nil {
+		log.Fatal(err)
+	}
 	if node == nil{
-		return l
+		return nil
 	}
-	if node.Type != html.ElementNode && node.Data != "a" {
-		return l
+	l := make(map[int]string)
+	if node.Type == html.DocumentNode{
+		node = node.FirstChild
 	}
-	for i, a := range node.Attr {
-		if a.Key == "href" {
-			l[i] =  a.Val
+	if node.Type == html.ElementNode && node.Data == "a" {
+			for i, a := range node.Attr {
+				if a.Key == "href" {
+					l[i] =  a.Val
+				}
+			}
+			for child := node.FirstChild; child != nil; child = child.NextSibling {
+				l = parseNode(child, l)
+			}
+	}
+
+	return l
+}
+
+func parseNode(node *html.Node, l map[int]string)  map[int]string{
+	if node.Type == html.ElementNode && node.Data == "a" {
+		for i, a := range node.Attr {
+			if a.Key == "href" {
+				l[i] =  a.Val
+			}
 		}
-	}
-	for child := node.FirstChild; child != nil; child = child.NextSibling {
-		l = links(child)
+		for child := node.FirstChild; child != nil; child = child.NextSibling {
+			l = parseNode(child, l)
+		}
 	}
 	return l
 }

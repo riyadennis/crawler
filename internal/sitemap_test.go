@@ -1,11 +1,9 @@
 package internal
 
 import (
-	"errors"
-	"reflect"
 	"testing"
 
-	"golang.org/x/net/html"
+	"github.com/google/go-cmp/cmp"
 )
 
 func TestSiteMap(t *testing.T) {
@@ -14,21 +12,21 @@ func TestSiteMap(t *testing.T) {
 		url         string
 		expectedErr error
 	}{
-		{
-			name:        "invalid host name",
-			url:         "invalid",
-			expectedErr: errors.New("invalid host name invalid"),
-		},
-		{
-			name:        "valid host",
-			url:         "google.co.uk",
-			expectedErr: nil,
-		},
+		//{
+		//	name:        "invalid host name",
+		//	url:         "invalid",
+		//	expectedErr: errors.New("invalid host name invalid"),
+		//},
 		{
 			name:        "valid host",
-			url:         "mail.google.com/mail/u/0/#inbox",
+			url:         "monzo.com",
 			expectedErr: nil,
 		},
+		//{
+		//	name:        "valid host",
+		//	url:         "mail.google.com/mail/u/0/#inbox",
+		//	expectedErr: nil,
+		//},
 	}
 	for _, sc := range scenarios {
 		t.Run(sc.name, func(t *testing.T) {
@@ -38,36 +36,28 @@ func TestSiteMap(t *testing.T) {
 		})
 	}
 }
+
 func TestLinks(t *testing.T) {
 	scenarios := []struct{
 		name string
-		node *html.Node
+		html []byte
 		linksExp map[int]string
 	}{
 		{
 			name: "empty node",
-			node: nil,
+			html: nil,
 			linksExp: map[int]string{},
 		},
 		{
 			name: "empty node",
-			node: &html.Node{
-				Type: html.ElementNode,
-				Data: "a",
-				Attr: []html.Attribute{
-					{
-						Key: "href",
-						Val: "test",
-					},
-				},
-			},
+			html: []byte("invalid"),
 			linksExp: map[int]string{ 1: "test"},
 		},
 	}
 	for _, sc := range scenarios{
 		t.Run(sc.name, func(t *testing.T){
-			l := links(sc.node)
-			if reflect.DeepEqual(l, sc.linksExp){
+			l := links(sc.html)
+			if cmp.Equal(l, sc.linksExp){
 				t.Errorf("links got %v, want %v", l, sc.linksExp)
 			}
 		})
