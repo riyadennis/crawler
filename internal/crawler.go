@@ -56,10 +56,11 @@ func validateURL(rootURL string) (*url.URL, error) {
 
 func fetchData(url string) (io.Reader, error) {
 	resp, err := http.Get(url)
-	body := resp.Body
 	if err != nil {
 		return nil, err
 	}
+	body := resp.Body
+
 	// check response status code
 	if resp.StatusCode != http.StatusOK {
 		return nil, errors.New("unable to load the url")

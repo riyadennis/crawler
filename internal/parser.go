@@ -8,6 +8,7 @@ import (
 func tokenize(reader io.Reader) map[int]string {
 	links := make(map[int]string)
 	token := html.NewTokenizer(reader)
+	i := 0
 	for {
 		if token.Err() == io.EOF {
 			break
@@ -19,24 +20,25 @@ func tokenize(reader io.Reader) map[int]string {
 		switch tokenType {
 		case html.StartTagToken:
 			t := token.Token()
-			links = searchLinks(t)
+			link := searchLinks(t)
+			if link != "" {
+				links[i] = link
+				i++
+			}
 		}
 	}
 	return links
 }
 
-func searchLinks(t html.Token) map[int]string {
-	links := make(map[int]string)
-	i := 0
+func searchLinks(t html.Token) string {
 	if t.Data == "a" {
 		for _, att := range t.Attr {
 			if att.Key == "href" {
 				if att.Val != "#" {
-					links[i] = att.Val
-					i++
+					return att.Val
 				}
 			}
 		}
 	}
-	return links
+	return ""
 }

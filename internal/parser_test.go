@@ -37,13 +37,20 @@ func TestTokenize(t *testing.T) {
 			html:  htmlStr(`<a href="/test">Test</a>`),
 			links: map[int]string{0: "/test"},
 		},
+
+		{
+			name: "valid two links",
+			html: htmlStr(`<a href="/test1">Test</a>
+<a href="/test2">Test</a>`),
+			links: map[int]string{0: "/test1", 1: "/test2"},
+		},
 	}
 
 	for _, sc := range scenarios {
 		t.Run(sc.name, func(t *testing.T) {
 			links := tokenize(strings.NewReader(sc.html))
 			if !cmp.Equal(links, sc.links) {
-				t.Errorf("unexpected links")
+				t.Errorf("got %v, want %v", links, sc.links)
 			}
 		})
 	}
