@@ -29,7 +29,6 @@ func (c *Crawler) tokenize(reader io.Reader) map[int]string {
 					links[i] = link
 					i++
 				}
-
 			}
 		}
 	}

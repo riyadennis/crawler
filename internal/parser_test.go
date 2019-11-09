@@ -33,16 +33,20 @@ func TestTokenize(t *testing.T) {
 			links: map[int]string{},
 		},
 		{
-			name:  "valid link",
-			html:  htmlStr(`<a href="/test">Test</a>`),
-			links: map[int]string{0: "https://www.google.co.uk/test"},
+			name: "valid link",
+			html: htmlStr(`<a href="/test">Test</a>`),
+			links: map[int]string{
+				0: "https://www.google.co.uk/test",
+			},
 		},
 
 		{
 			name: "valid two links",
 			html: htmlStr(`<a href="/test1">Test</a>
 		<a href="/test2">Test</a>`),
-			links: map[int]string{0: "https://www.google.co.uk/test1", 1: "https://www.google.co.uk/test2"},
+			links: map[int]string{
+				0: "https://www.google.co.uk/test1",
+				1: "https://www.google.co.uk/test2"},
 		},
 		{
 			name: "valid two links",
