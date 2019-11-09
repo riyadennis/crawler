@@ -8,9 +8,10 @@ import (
 	"strings"
 )
 
-func (c *Crawler) tokenize(reader io.Reader) map[int]string {
+func (c *Crawler) tokenize(reader io.ReadCloser) map[int]string {
 	links := make(map[int]string)
 	token := html.NewTokenizer(reader)
+	defer reader.Close()
 	i := 0
 	for {
 		if token.Err() == io.EOF {

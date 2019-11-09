@@ -17,8 +17,8 @@ const regExpDomain = `^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$`
 // Crawler holds data that we need to parse a web page
 type Crawler struct {
 	RootURL *url.URL
-	Fetcher func() (io.Reader, error)
-	Parser  func(reader io.Reader) map[int]string
+	Fetcher func() (io.ReadCloser, error)
+	Parser  func(reader io.ReadCloser) map[int]string
 }
 
 func Crawl(url string, ch chan map[int]string, wg *sync.WaitGroup) {
@@ -30,6 +30,7 @@ func Crawl(url string, ch chan map[int]string, wg *sync.WaitGroup) {
 	if err != nil {
 		fmt.Printf("failed to fetch:: %v", err)
 	}
+	defer r.Close()
 	ch <- c.Parser(r)
 	wg.Done()
 }
@@ -65,13 +66,12 @@ func validateURL(rootURL string) (*url.URL, error) {
 	return url, nil
 }
 
-func (c *Crawler) fetchData() (io.Reader, error) {
+func (c *Crawler) fetchData() (io.ReadCloser, error) {
 	resp, err := http.Get(c.RootURL.String())
 	if err != nil {
 		return nil, err
 	}
 	body := resp.Body
-
 	// check response status code
 	if resp.StatusCode != http.StatusOK {
 		return nil, errors.New("unable to load the url")
