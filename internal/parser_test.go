@@ -1,9 +1,11 @@
 package internal
 
 import (
-	"github.com/google/go-cmp/cmp"
+	"io/ioutil"
 	"strings"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 )
 
 func TestTokenize(t *testing.T) {
@@ -61,7 +63,7 @@ func TestTokenize(t *testing.T) {
 	}
 	for _, sc := range scenarios {
 		t.Run(sc.name, func(t *testing.T) {
-			links := c.tokenize(strings.NewReader(sc.html))
+			links := c.tokenize(ioutil.NopCloser(strings.NewReader(sc.html)))
 			if !cmp.Equal(links, sc.links) {
 				t.Errorf("got %v, want %v", links, sc.links)
 			}
