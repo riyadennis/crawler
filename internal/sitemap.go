@@ -1,16 +1,12 @@
 package internal
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
-	"io/ioutil"
-	"log"
+	"golang.org/x/net/html"
 	"net/http"
 	"net/url"
 	"regexp"
-
-	"golang.org/x/net/html"
 )
 
 const regExpDomain = `^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$`
@@ -18,80 +14,22 @@ const regExpDomain = `^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$`
 // Crawler holds data that we need to parse a web page
 type Crawler struct {
 	RootURL string
-	Links   func(response []byte) map[int]string
 }
 
 // NewCrawler initialises the Crawler
-func NewCrawler(url string) *Crawler {
+func NewCrawler(url string) (*Crawler, error) {
 	c := &Crawler{}
-	c.RootURL = url
-	c.Links = links
-	return c
+	u, err := validateURL(url)
+	if err != nil {
+		return nil, err
+	}
+	c.RootURL = u.String()
+	return c, nil
 }
 
 // Map will try to create a site map of links
-func (c *Crawler) Map() error {
-	u, err := validateURL(c.RootURL)
-	if err != nil {
-		return err
-	}
-	re, err := fetchURL(u)
-	if err != nil {
-		return err
-	}
-	if re == nil {
-		return errors.New("unable to load data from url")
-	}
-	l := c.Links(re)
-	fmt.Printf("%v", l)
-	return nil
-}
-
-func links(response []byte) map[int]string {
-	if response == nil{
-		return nil
-	}
-	node, err := html.Parse(bytes.NewReader(response))
-	if err != nil {
-		log.Fatal(err)
-	}
-	if node == nil{
-		return nil
-	}
-	l := make(map[int]string)
-	if node.Type == html.DocumentNode{
-		node = node.FirstChild
-	}
-	if node.Type == html.ElementNode && node.Data == "a" {
-			for i, a := range node.Attr {
-				if a.Key == "href" {
-					l[i] =  a.Val
-				}
-			}
-			for child := node.FirstChild; child != nil; child = child.NextSibling {
-				l = parseNode(child, l)
-			}
-	}
-
-	return l
-}
-
-func parseNode(node *html.Node, l map[int]string)  map[int]string{
-	if node.Type == html.ElementNode && node.Data == "a" {
-		for i, a := range node.Attr {
-			if a.Key == "href" {
-				l[i] =  a.Val
-			}
-		}
-		for child := node.FirstChild; child != nil; child = child.NextSibling {
-			l = parseNode(child, l)
-		}
-	}
-	return l
-}
-
-func fetchURL(u *url.URL) ([]byte, error) {
-	resp, err := http.Get(u.String())
+func (c *Crawler) Crawl() (map[int]string, error) {
+	resp, err := http.Get(c.RootURL)
 	defer resp.Body.Close()
 	if err != nil {
 		return nil, err
@@ -99,7 +37,27 @@ func fetchURL(u *url.URL) ([]byte, error) {
 	if resp.StatusCode != http.StatusOK {
 		return nil, errors.New("unable to load the url")
 	}
-	return ioutil.ReadAll(resp.Body)
+	links := make(map[int]string)
+	token := html.NewTokenizer(resp.Body)
+	i := 0
+	for {
+		tokenType := token.Next()
+		switch tokenType {
+		case html.ErrorToken:
+		case html.StartTagToken:
+			t := token.Token()
+			if t.Data == "a" {
+				for _, att := range t.Attr {
+					if att.Key == "href" {
+						links[i] = att.Val
+					}
+				}
+
+			}
+
+		}
+	}
+	return links, nil
 }
 
 func validateURL(rootURL string) (*url.URL, error) {
