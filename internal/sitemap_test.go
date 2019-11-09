@@ -2,6 +2,7 @@ package internal
 
 import (
 	"errors"
+	"reflect"
 	"testing"
 
 	"golang.org/x/net/html"
@@ -38,18 +39,39 @@ func TestSiteMap(t *testing.T) {
 	}
 }
 func TestLinks(t *testing.T) {
-	node := &html.Node{
-		Type: html.ElementNode,
-		Data: "a",
-		Attr: []html.Attribute{
-			{
-				Key: "href",
-				Val: "test",
+	scenarios := []struct{
+		name string
+		node *html.Node
+		linksExp map[int]string
+	}{
+		{
+			name: "empty node",
+			node: nil,
+			linksExp: map[int]string{},
+		},
+		{
+			name: "empty node",
+			node: &html.Node{
+				Type: html.ElementNode,
+				Data: "a",
+				Attr: []html.Attribute{
+					{
+						Key: "href",
+						Val: "test",
+					},
+				},
 			},
+			linksExp: map[int]string{ 1: "test"},
 		},
 	}
-	l := links(node)
-	t.Logf("links %v", l)
+	for _, sc := range scenarios{
+		t.Run(sc.name, func(t *testing.T){
+			l := links(sc.node)
+			if reflect.DeepEqual(l, sc.linksExp){
+				t.Errorf("links got %v, want %v", l, sc.linksExp)
+			}
+		})
+	}
 }
 
 func checkErr(t *testing.T, actualErr, expectedErr error) {

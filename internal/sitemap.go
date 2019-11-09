@@ -18,7 +18,7 @@ const regExpDomain = `^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$`
 // Crawler holds data that we need to parse a web page
 type Crawler struct {
 	RootURL string
-	Links   func(*html.Node) []string
+	Links   func(*html.Node) map[int]string
 }
 
 // NewCrawler initialises the Crawler
@@ -51,14 +51,17 @@ func (c *Crawler) Map() error {
 	return nil
 }
 
-func links(node *html.Node) []string {
-	var l []string
+func links(node *html.Node) map[int]string {
+	l := make(map[int]string)
+	if node == nil{
+		return l
+	}
 	if node.Type != html.ElementNode && node.Data != "a" {
 		return l
 	}
-	for _, a := range node.Attr {
+	for i, a := range node.Attr {
 		if a.Key == "href" {
-			l = append(l, a.Val)
+			l[i] =  a.Val
 		}
 	}
 	for child := node.FirstChild; child != nil; child = child.NextSibling {
