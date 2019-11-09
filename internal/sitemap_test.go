@@ -43,21 +43,47 @@ func TestLinks(t *testing.T) {
 		html []byte
 		linksExp map[int]string
 	}{
+		//{
+		//	name: "empty node",
+		//	html: nil,
+		//	linksExp: nil,
+		//},
+		//{
+		//	name: "invalid node",
+		//	html: []byte("invalid"),
+		//	linksExp: map[int]string{},
+		//},
+		//{
+		//	name: "invalid node",
+		//	html: []byte(`<!DOCTYPE html>
+		//	<html>
+		//	<body>
+		//
+		//	<h1>My First Heading</h1>
+		//	<p>My first paragraph.</p>
+		//
+		//	</body>
+		//	</html>`),
+		//	linksExp: map[int]string{},
+		//},
 		{
-			name: "empty node",
-			html: nil,
+			name: "invalid node",
+			html: []byte(`
+			<html>
+			<body>
+
+			<h1>My First Heading</h1>
+			<p>My first paragraph.</p>
+			<a href="#">Hello</a>
+			</body>
+			</html>`),
 			linksExp: map[int]string{},
-		},
-		{
-			name: "empty node",
-			html: []byte("invalid"),
-			linksExp: map[int]string{ 1: "test"},
 		},
 	}
 	for _, sc := range scenarios{
 		t.Run(sc.name, func(t *testing.T){
 			l := links(sc.html)
-			if cmp.Equal(l, sc.linksExp){
+			if !cmp.Equal(l, sc.linksExp){
 				t.Errorf("links got %v, want %v", l, sc.linksExp)
 			}
 		})
