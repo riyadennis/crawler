@@ -3,10 +3,14 @@ package internal
 import (
 	"errors"
 	"fmt"
-	"golang.org/x/net/html"
+	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"regexp"
+	"strings"
+
+	"golang.org/x/net/html"
 )
 
 const regExpDomain = `^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$`
@@ -29,35 +33,65 @@ func NewCrawler(url string) (*Crawler, error) {
 
 // Map will try to create a site map of links
 func (c *Crawler) Crawl() (map[int]string, error) {
-	resp, err := http.Get(c.RootURL)
-	defer resp.Body.Close()
+	r, err := fetchData(c.RootURL)
 	if err != nil {
 		return nil, err
 	}
-	if resp.StatusCode != http.StatusOK {
-		return nil, errors.New("unable to load the url")
-	}
+	return tokenize(r)
+}
+
+func tokenize(reader io.Reader) (map[int]string, error) {
 	links := make(map[int]string)
-	token := html.NewTokenizer(resp.Body)
-	i := 0
+	token := html.NewTokenizer(reader)
 	for {
+		if token.Err() == io.EOF {
+			break
+		}
+		if token.Err() != nil {
+			return nil, token.Err()
+		}
 		tokenType := token.Next()
 		switch tokenType {
-		case html.ErrorToken:
 		case html.StartTagToken:
 			t := token.Token()
-			if t.Data == "a" {
-				for _, att := range t.Attr {
-					if att.Key == "href" {
-						links[i] = att.Val
-					}
-				}
-
-			}
-
+			links = searchLinks(t)
 		}
 	}
 	return links, nil
+}
+
+func searchLinks(t html.Token) map[int]string {
+	links := make(map[int]string)
+	i := 0
+	if t.Data == "a" {
+		for _, att := range t.Attr {
+			if att.Key == "href" {
+				if att.Val != "#" {
+					links[i] = att.Val
+					i++
+				}
+			}
+		}
+	}
+	return links
+}
+
+func fetchData(url string) (io.Reader, error) {
+	resp, err := http.Get(url)
+	body := resp.Body
+	if err != nil {
+		return nil, err
+	}
+	// check response status code
+	if resp.StatusCode != http.StatusOK {
+		return nil, errors.New("unable to load the url")
+	}
+	//check response content type
+	ctype := resp.Header.Get("Content-Type")
+	if !strings.HasPrefix(ctype, "text/html") {
+		log.Fatalf("response content type was %s not text/html\n", ctype)
+	}
+	return body, nil
 }
 
 func validateURL(rootURL string) (*url.URL, error) {

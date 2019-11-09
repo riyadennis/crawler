@@ -3,6 +3,7 @@ package internal
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"testing"
 )
 
@@ -58,6 +59,47 @@ func TestCrawl(t *testing.T) {
 	}
 }
 
+func TestTokenize(t *testing.T) {
+	scenarios := []struct {
+		name        string
+		html        string
+		expectedErr error
+	}{
+		{
+			name:        "not html",
+			html:        "not html",
+			expectedErr: nil,
+		},
+		{
+			name:        "no links",
+			html:        htmlStr("<p>"),
+			expectedErr: nil,
+		},
+		{
+			name:        "dead link",
+			html:        htmlStr(`<a>Test</a>`),
+			expectedErr: nil,
+		},
+		{
+			name:        "invalid href link",
+			html:        htmlStr(`<a href="#">Test</a>`),
+			expectedErr: nil,
+		},
+		{
+			name:        "valid link",
+			html:        htmlStr(`<a href="/test">Test</a>`),
+			expectedErr: nil,
+		},
+	}
+
+	for _, sc := range scenarios {
+		t.Run(sc.name, func(t *testing.T) {
+			links, _ := tokenize(strings.NewReader(sc.html))
+			fmt.Printf("links %v", links)
+		})
+	}
+}
+
 func checkErr(t *testing.T, actualErr, expectedErr error) {
 	t.Helper()
 	if actualErr != nil && expectedErr == nil {
@@ -72,4 +114,19 @@ func checkErr(t *testing.T, actualErr, expectedErr error) {
 				actualErr.Error(), expectedErr.Error())
 		}
 	}
+}
+
+func htmlStr(tag string) string {
+	return `<!DOCTYPE html>
+<html>
+<head>
+<title>Page Title</title>
+</head>
+<body>
+
+	<h1>My First Heading</h1>
+	<p>My first paragraph.</p>
+	` + tag + `
+</body>
+</html>`
 }
