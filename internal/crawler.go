@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -106,7 +105,7 @@ func (c *Crawler) fetchData() (io.ReadCloser, error) {
 	//check response content type
 	ctype := resp.Header.Get("Content-Type")
 	if !strings.HasPrefix(ctype, "text/html") {
-		log.Fatalf("response content type was %s not text/html\n", ctype)
+		return nil, fmt.Errorf("response content type was %s not text/html\n", ctype)
 	}
 	return body, nil
 }
