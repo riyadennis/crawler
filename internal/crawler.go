@@ -15,7 +15,9 @@ const regExpDomain = `^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$`
 
 // Crawler holds data that we need to parse a web page
 type Crawler struct {
-	RootURL string
+	RootURL *url.URL
+	Fetcher func() (io.Reader, error)
+	Parser  func(reader io.Reader) map[int]string
 }
 
 // NewCrawler initialises the Crawler
@@ -25,17 +27,10 @@ func NewCrawler(url string) (*Crawler, error) {
 	if err != nil {
 		return nil, err
 	}
-	c.RootURL = u.String()
+	c.RootURL = u
+	c.Fetcher = c.fetchData
+	c.Parser = c.tokenize
 	return c, nil
-}
-
-// Map will try to create a site map of links
-func (c *Crawler) Crawl() (map[int]string, error) {
-	r, err := fetchData(c.RootURL)
-	if err != nil {
-		return nil, err
-	}
-	return tokenize(r), nil
 }
 
 func validateURL(rootURL string) (*url.URL, error) {
@@ -54,8 +49,8 @@ func validateURL(rootURL string) (*url.URL, error) {
 	return url, nil
 }
 
-func fetchData(url string) (io.Reader, error) {
-	resp, err := http.Get(url)
+func (c *Crawler) fetchData() (io.Reader, error) {
+	resp, err := http.Get(c.RootURL.String())
 	if err != nil {
 		return nil, err
 	}

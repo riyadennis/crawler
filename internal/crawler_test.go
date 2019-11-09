@@ -2,31 +2,8 @@ package internal
 
 import (
 	"errors"
-	"fmt"
 	"testing"
 )
-
-func TestCrawl(t *testing.T) {
-	scenarios := []struct {
-		name string
-		url  string
-	}{
-		{
-			name: "google",
-			url:  "google.co.uk",
-		},
-	}
-	for _, sc := range scenarios {
-		t.Run(sc.name, func(t *testing.T) {
-			c, _ := NewCrawler(sc.url)
-			links, err := c.Crawl()
-			if err != nil {
-				t.Error(err)
-			}
-			fmt.Printf("links %v", links)
-		})
-	}
-}
 
 func TestNewCrawler(t *testing.T) {
 	var scenarios = []struct {

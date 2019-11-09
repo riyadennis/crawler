@@ -35,20 +35,29 @@ func TestTokenize(t *testing.T) {
 		{
 			name:  "valid link",
 			html:  htmlStr(`<a href="/test">Test</a>`),
-			links: map[int]string{0: "/test"},
+			links: map[int]string{0: "https://www.google.co.uk/test"},
 		},
 
 		{
 			name: "valid two links",
 			html: htmlStr(`<a href="/test1">Test</a>
-<a href="/test2">Test</a>`),
-			links: map[int]string{0: "/test1", 1: "/test2"},
+		<a href="/test2">Test</a>`),
+			links: map[int]string{0: "https://www.google.co.uk/test1", 1: "https://www.google.co.uk/test2"},
+		},
+		{
+			name: "valid two links",
+			html: htmlStr(`<a href="http://www.google.co.uk/imghp?hl=en&tab=w">Test</a>
+<a href="http://www.maps.co.uk/imghp?hl=en&tab=w">Test</a>`),
+			links: map[int]string{0: "http://www.google.co.uk/imghp?hl=en&tab=w"},
 		},
 	}
-
+	c, err := NewCrawler("www.google.co.uk")
+	if err != nil {
+		t.Fatal(err)
+	}
 	for _, sc := range scenarios {
 		t.Run(sc.name, func(t *testing.T) {
-			links := tokenize(strings.NewReader(sc.html))
+			links := c.tokenize(strings.NewReader(sc.html))
 			if !cmp.Equal(links, sc.links) {
 				t.Errorf("got %v, want %v", links, sc.links)
 			}
