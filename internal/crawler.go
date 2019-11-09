@@ -9,7 +9,6 @@ import (
 	"net/url"
 	"regexp"
 	"strings"
-	"sync"
 )
 
 const regExpDomain = `^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$`
@@ -21,7 +20,21 @@ type Crawler struct {
 	Parser  func(reader io.ReadCloser) map[int]string
 }
 
-func Crawl(url string, ch chan map[int]string, wg *sync.WaitGroup) {
+func Crawl(url string, depth, i int, ch chan map[int]map[int]string) {
+	if depth <= 0 {
+		return
+	}
+	links := make(map[int]map[int]string)
+
+	links[i] = parsed(url)
+	ch <- links
+	for _, l := range links {
+		i = i + 2
+		Crawl(l[i], depth-1, i+4, ch)
+	}
+}
+
+func parsed(url string) map[int]string {
 	c, err := NewCrawler(url)
 	if err != nil {
 		fmt.Printf("failed to create crawler :: %v", err)
@@ -31,8 +44,7 @@ func Crawl(url string, ch chan map[int]string, wg *sync.WaitGroup) {
 		fmt.Printf("failed to fetch:: %v", err)
 	}
 	defer r.Close()
-	ch <- c.Parser(r)
-	wg.Done()
+	return c.Parser(r)
 }
 
 // NewCrawler initialises the Crawler

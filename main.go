@@ -4,19 +4,20 @@ import (
 	"flag"
 	"fmt"
 	"github.com/riyadennis/crawler/internal"
-	"sync"
 )
 
 func main() {
-	var wt sync.WaitGroup
 	rootURL := flag.String("root", "https://monzo.com", "root ur2l")
 	flag.Parse()
+	depth := 2
 
-	wt.Add(1)
-	ch := make(chan map[int]string)
-	go internal.Crawl(*rootURL, ch, &wt)
-	fmt.Printf("%v", <-ch)
-	wt.Wait()
-
-	defer close(ch)
+	ch := make(chan map[int]map[int]string, depth)
+	go internal.Crawl(*rootURL, depth, 0, ch)
+	for {
+		select {
+		case msg := <-ch:
+			fmt.Printf("\n from channel : %v\n", msg)
+		}
+	}
+	close(ch)
 }
