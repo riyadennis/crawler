@@ -34,6 +34,19 @@ func Crawl(url string, depth, i int, ch chan map[int]map[int]string) {
 	}
 }
 
+func Display(ch chan map[int]map[int]string) {
+	for {
+		select {
+		case dlinks := <-ch:
+			for _, dl := range dlinks {
+				for _, l := range dl {
+					fmt.Printf("\n from channel %s \n", l)
+				}
+			}
+		}
+	}
+}
+
 func parsed(url string) map[int]string {
 	c, err := NewCrawler(url)
 	if err != nil {
