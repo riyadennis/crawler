@@ -9,8 +9,6 @@ import (
 	"net/url"
 	"regexp"
 	"strings"
-
-	"golang.org/x/net/html"
 )
 
 const regExpDomain = `^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$`
@@ -37,43 +35,23 @@ func (c *Crawler) Crawl() (map[int]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	return tokenize(r)
+	return tokenize(r), nil
 }
 
-func tokenize(reader io.Reader) (map[int]string, error) {
-	links := make(map[int]string)
-	token := html.NewTokenizer(reader)
-	for {
-		if token.Err() == io.EOF {
-			break
-		}
-		if token.Err() != nil {
-			return nil, token.Err()
-		}
-		tokenType := token.Next()
-		switch tokenType {
-		case html.StartTagToken:
-			t := token.Token()
-			links = searchLinks(t)
-		}
+func validateURL(rootURL string) (*url.URL, error) {
+	rootURL = fmt.Sprintf("%s://%s", "http", rootURL)
+	url, err := url.Parse(rootURL)
+	if err != nil {
+		return nil, err
 	}
-	return links, nil
-}
-
-func searchLinks(t html.Token) map[int]string {
-	links := make(map[int]string)
-	i := 0
-	if t.Data == "a" {
-		for _, att := range t.Attr {
-			if att.Key == "href" {
-				if att.Val != "#" {
-					links[i] = att.Val
-					i++
-				}
-			}
-		}
+	reg, err := regexp.Compile(regExpDomain)
+	if err != nil {
+		return nil, err
 	}
-	return links
+	if !reg.MatchString(url.Host) {
+		return nil, fmt.Errorf("invalid host name %s", url.Host)
+	}
+	return url, nil
 }
 
 func fetchData(url string) (io.Reader, error) {
@@ -92,20 +70,4 @@ func fetchData(url string) (io.Reader, error) {
 		log.Fatalf("response content type was %s not text/html\n", ctype)
 	}
 	return body, nil
-}
-
-func validateURL(rootURL string) (*url.URL, error) {
-	rootURL = fmt.Sprintf("%s://%s", "http", rootURL)
-	url, err := url.Parse(rootURL)
-	if err != nil {
-		return nil, err
-	}
-	reg, err := regexp.Compile(regExpDomain)
-	if err != nil {
-		return nil, err
-	}
-	if !reg.MatchString(url.Host) {
-		return nil, fmt.Errorf("invalid host name %s", url.Host)
-	}
-	return url, nil
 }
