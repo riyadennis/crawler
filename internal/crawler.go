@@ -34,7 +34,6 @@ func NewCrawler(url string) (*Crawler, error) {
 }
 
 func validateURL(rootURL string) (*url.URL, error) {
-	rootURL = fmt.Sprintf("%s://%s", "http", rootURL)
 	url, err := url.Parse(rootURL)
 	if err != nil {
 		return nil, err
@@ -44,6 +43,9 @@ func validateURL(rootURL string) (*url.URL, error) {
 		return nil, err
 	}
 	if !reg.MatchString(url.Host) {
+		if url.Host == "" {
+			return nil, errors.New("empty host name")
+		}
 		return nil, fmt.Errorf("invalid host name %s", url.Host)
 	}
 	return url, nil

@@ -14,16 +14,16 @@ func TestNewCrawler(t *testing.T) {
 		{
 			name:        "invalid host name",
 			url:         "invalid",
-			expectedErr: errors.New("invalid host name invalid"),
+			expectedErr: errors.New("empty host name"),
 		},
 		{
 			name:        "valid host",
-			url:         "monzo.com",
+			url:         "http://monzo.com",
 			expectedErr: nil,
 		},
 		{
 			name:        "valid host",
-			url:         "mail.google.com/mail/u/0/#inbox",
+			url:         "http://mail.google.com/mail/u/0/#inbox",
 			expectedErr: nil,
 		},
 	}
