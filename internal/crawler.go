@@ -20,6 +20,7 @@ type Crawler struct {
 	Parser  func(reader io.ReadCloser) map[int]string
 }
 
+//Crawl does the scrapping of links and sub links
 func Crawl(url string, depth, i int, ch chan map[int]map[int]string) {
 	if depth <= 0 {
 		return
@@ -34,6 +35,20 @@ func Crawl(url string, depth, i int, ch chan map[int]map[int]string) {
 	}
 }
 
+// NewCrawler initialises the Crawler
+func NewCrawler(url string) (*Crawler, error) {
+	c := &Crawler{}
+	u, err := validateURL(url)
+	if err != nil {
+		return nil, err
+	}
+	c.RootURL = u
+	c.Fetcher = c.fetchData
+	c.Parser = c.tokenize
+	return c, nil
+}
+
+//Display will print the results into  console
 func Display(ch chan map[int]map[int]string) {
 	for {
 		select {
@@ -58,19 +73,6 @@ func parsed(url string) map[int]string {
 	}
 	defer r.Close()
 	return c.Parser(r)
-}
-
-// NewCrawler initialises the Crawler
-func NewCrawler(url string) (*Crawler, error) {
-	c := &Crawler{}
-	u, err := validateURL(url)
-	if err != nil {
-		return nil, err
-	}
-	c.RootURL = u
-	c.Fetcher = c.fetchData
-	c.Parser = c.tokenize
-	return c, nil
 }
 
 func validateURL(rootURL string) (*url.URL, error) {
