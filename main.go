@@ -6,8 +6,9 @@ import (
 	"github.com/riyadennis/crawler/internal"
 )
 
-func main(){
+func main() {
 	url := flag.String("root", "google.co.uk", "root url")
 	flag.Parse()
-	internal.SiteMap(*url)
+	c := internal.NewCrawler(*url)
+	c.Map()
 }

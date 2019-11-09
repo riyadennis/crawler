@@ -1,11 +1,10 @@
 package internal
 
 import (
-	"fmt"
-	"golang.org/x/net/html"
-	"log"
-	"strings"
+	"errors"
 	"testing"
+
+	"golang.org/x/net/html"
 )
 
 func TestSiteMap(t *testing.T) {
@@ -14,28 +13,43 @@ func TestSiteMap(t *testing.T) {
 		url         string
 		expectedErr error
 	}{
-		//{
-		//	name: "invalid host name",
-		//	url:  "invalid",
-		//	expectedErr: errors.New("invalid host name invalid"),
-		//},
 		{
-			name: "valid host",
-			url:  "google.co.uk",
+			name:        "invalid host name",
+			url:         "invalid",
+			expectedErr: errors.New("invalid host name invalid"),
+		},
+		{
+			name:        "valid host",
+			url:         "google.co.uk",
 			expectedErr: nil,
 		},
-		//{
-		//	name: "valid host",
-		//	url:  "mail.google.com/mail/u/0/#inbox",
-		//	expectedErr: nil,
-		//},
+		{
+			name:        "valid host",
+			url:         "mail.google.com/mail/u/0/#inbox",
+			expectedErr: nil,
+		},
 	}
-	for _, sc := range scenarios{
-		t.Run(sc.name, func(t *testing.T){
-			err := SiteMap(sc.url)
+	for _, sc := range scenarios {
+		t.Run(sc.name, func(t *testing.T) {
+			c := NewCrawler(sc.url)
+			err := c.Map()
 			checkErr(t, err, sc.expectedErr)
 		})
 	}
+}
+func TestLinks(t *testing.T) {
+	node := &html.Node{
+		Type: html.ElementNode,
+		Data: "a",
+		Attr: []html.Attribute{
+			{
+				Key: "href",
+				Val: "test",
+			},
+		},
+	}
+	l := links(node)
+	t.Logf("links %v", l)
 }
 
 func checkErr(t *testing.T, actualErr, expectedErr error) {
@@ -52,27 +66,4 @@ func checkErr(t *testing.T, actualErr, expectedErr error) {
 				actualErr.Error(), expectedErr.Error())
 		}
 	}
-}
-
-func testHTMLParsing(){
-	s := `<p>Links:</p><ul><li><a href="foo">Foo</a><li><a href="/bar/baz">BarBaz</a></ul>`
-	doc, err := html.Parse(strings.NewReader(s))
-	if err != nil {
-		log.Fatal(err)
-	}
-	var f func(*html.Node)
-	f = func(n *html.Node) {
-		if n.Type == html.ElementNode && n.Data == "a" {
-			for _, a := range n.Attr {
-				if a.Key == "href" {
-					fmt.Println(a.Val)
-					break
-				}
-			}
-		}
-		for c := n.FirstChild; c != nil; c = c.NextSibling {
-			f(c)
-		}
-	}
-	f(doc)
 }
