@@ -12,8 +12,8 @@ import (
 
 const regExpDomain = `^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$`
 
-// Crawler holds data that we need to parse a web page
-type Crawler struct {
+// webCrawler holds data that we need to parse a web page
+type webCrawler struct {
 	Source  *url.URL
 	Fetcher func() (io.ReadCloser, error)
 	Parser  func(reader io.ReadCloser) map[int]string
@@ -29,7 +29,9 @@ func Crawl(url string, depth int, ch chan map[int]map[int]string) {
 	links[depth] = linksFrmURL(url)
 	ch <- links
 	for _, l := range links {
-		Crawl(l[depth], depth-1, ch)
+		for _, li := range l {
+			Crawl(li, depth-1, ch)
+		}
 	}
 }
 
@@ -46,9 +48,9 @@ func linksFrmURL(url string) map[int]string {
 	return c.Parser(r)
 }
 
-// newWebCrawler initialises the Crawler to search for links in a webpage
-func newWebCrawler(url string) (*Crawler, error) {
-	c := &Crawler{}
+// newWebCrawler initialises the webCrawler to search for links in a webpage
+func newWebCrawler(url string) (*webCrawler, error) {
+	c := &webCrawler{}
 	u, err := validateURL(url)
 	if err != nil {
 		return nil, err
@@ -77,7 +79,7 @@ func validateURL(rootURL string) (*url.URL, error) {
 	return url, nil
 }
 
-func (c *Crawler) readURL() (io.ReadCloser, error) {
+func (c *webCrawler) readURL() (io.ReadCloser, error) {
 	resp, err := http.Get(c.Source.String())
 	if err != nil {
 		return nil, err

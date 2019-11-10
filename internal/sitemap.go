@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func (c *Crawler) siteMap(reader io.ReadCloser) map[int]string {
+func (c *webCrawler) siteMap(reader io.ReadCloser) map[int]string {
 	links := make(map[int]string)
 	token := html.NewTokenizer(reader)
 	defer reader.Close()
