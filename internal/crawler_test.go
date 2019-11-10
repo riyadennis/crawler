@@ -29,7 +29,7 @@ func TestNewCrawler(t *testing.T) {
 	}
 	for _, sc := range scenarios {
 		t.Run(sc.name, func(t *testing.T) {
-			_, err := newWebCrawler(sc.url)
+			_, err := NewWebCrawler(sc.url)
 			checkErr(t, err, sc.expectedErr)
 		})
 	}

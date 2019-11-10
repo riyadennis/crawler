@@ -57,7 +57,7 @@ func TestTokenize(t *testing.T) {
 			links: map[int]string{0: "http://www.google.co.uk/imghp?hl=en&tab=w"},
 		},
 	}
-	c, err := newWebCrawler("http://www.google.co.uk")
+	c, err := NewWebCrawler("http://www.google.co.uk")
 	if err != nil {
 		t.Fatal(err)
 	}
