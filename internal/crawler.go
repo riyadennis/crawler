@@ -20,17 +20,16 @@ type Crawler struct {
 }
 
 //Crawl does the scrapping of links and sub links
-func Crawl(url string, depth, i int, ch chan map[int]map[int]string) {
+func Crawl(url string, depth int, ch chan map[int]map[int]string) {
 	if depth <= 0 {
 		return
 	}
 	links := make(map[int]map[int]string)
 
-	links[i] = parsed(url)
+	links[depth] = parsed(url)
 	ch <- links
 	for _, l := range links {
-		i = i + 2
-		Crawl(l[i], depth-1, i+4, ch)
+		Crawl(l[depth], depth-1, ch)
 	}
 }
 
