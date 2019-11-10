@@ -14,7 +14,7 @@ const regExpDomain = `^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$`
 
 // Crawler holds data that we need to parse a web page
 type Crawler struct {
-	RootURL *url.URL
+	Source  *url.URL
 	Fetcher func() (io.ReadCloser, error)
 	Parser  func(reader io.ReadCloser) map[int]string
 }
@@ -26,42 +26,15 @@ func Crawl(url string, depth int, ch chan map[int]map[int]string) {
 	}
 	links := make(map[int]map[int]string)
 
-	links[depth] = parsed(url)
+	links[depth] = linksFrmURL(url)
 	ch <- links
 	for _, l := range links {
 		Crawl(l[depth], depth-1, ch)
 	}
 }
 
-// NewCrawler initialises the Crawler
-func NewCrawler(url string) (*Crawler, error) {
-	c := &Crawler{}
-	u, err := validateURL(url)
-	if err != nil {
-		return nil, err
-	}
-	c.RootURL = u
-	c.Fetcher = c.fetchData
-	c.Parser = c.tokenize
-	return c, nil
-}
-
-//Display will print the results into  console
-func Display(ch chan map[int]map[int]string) {
-	for {
-		select {
-		case dlinks := <-ch:
-			for _, dl := range dlinks {
-				for _, l := range dl {
-					fmt.Printf("\n from channel %s \n", l)
-				}
-			}
-		}
-	}
-}
-
-func parsed(url string) map[int]string {
-	c, err := NewCrawler(url)
+func linksFrmURL(url string) map[int]string {
+	c, err := newWebCrawler(url)
 	if err != nil {
 		fmt.Printf("failed to create crawler :: %v", err)
 	}
@@ -71,6 +44,19 @@ func parsed(url string) map[int]string {
 	}
 	defer r.Close()
 	return c.Parser(r)
+}
+
+// newWebCrawler initialises the Crawler to search for links in a webpage
+func newWebCrawler(url string) (*Crawler, error) {
+	c := &Crawler{}
+	u, err := validateURL(url)
+	if err != nil {
+		return nil, err
+	}
+	c.Source = u
+	c.Fetcher = c.readURL
+	c.Parser = c.siteMap
+	return c, nil
 }
 
 func validateURL(rootURL string) (*url.URL, error) {
@@ -91,8 +77,8 @@ func validateURL(rootURL string) (*url.URL, error) {
 	return url, nil
 }
 
-func (c *Crawler) fetchData() (io.ReadCloser, error) {
-	resp, err := http.Get(c.RootURL.String())
+func (c *Crawler) readURL() (io.ReadCloser, error) {
+	resp, err := http.Get(c.Source.String())
 	if err != nil {
 		return nil, err
 	}

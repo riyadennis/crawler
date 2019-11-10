@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func (c *Crawler) tokenize(reader io.ReadCloser) map[int]string {
+func (c *Crawler) siteMap(reader io.ReadCloser) map[int]string {
 	links := make(map[int]string)
 	token := html.NewTokenizer(reader)
 	defer reader.Close()
@@ -24,9 +24,9 @@ func (c *Crawler) tokenize(reader io.ReadCloser) map[int]string {
 		switch tokenType {
 		case html.StartTagToken:
 			t := token.Token()
-			link := searchLinks(t, c.RootURL.Host)
+			link := searchLinks(t, c.Source.Host)
 			if link != "" {
-				if checkDomain(c.RootURL.Host, link) {
+				if checkDomain(c.Source.Host, link) {
 					links[i] = link
 					i++
 				}
