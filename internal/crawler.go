@@ -18,9 +18,8 @@ type Crawler interface {
 
 // webCrawler holds data that we need to parse a web page
 type webCrawler struct {
-	Source  *url.URL
-	Fetcher func() (io.ReadCloser, error)
-	Parser  func(reader io.ReadCloser) map[int]string
+	Fetcher func(source string) (io.ReadCloser, error)
+	Parser  func(source string, reader io.ReadCloser) map[int]string
 }
 
 //Crawl does the scrapping of links and sub links
@@ -44,47 +43,46 @@ func linksFrmURL(url string) map[int]string {
 	if err != nil {
 		fmt.Printf("failed to create crawler :: %v", err)
 	}
-	r, err := c.Fetcher()
+	r, err := c.Fetcher(url)
 	if err != nil {
 		fmt.Printf("failed to fetch:: %v", err)
 	}
 	defer r.Close()
-	return c.Parser(r)
+	return c.Parser(url, r)
 }
 
 // NewWebCrawler initialises the webCrawler to search for links in a webpage
 func NewWebCrawler(url string) (*webCrawler, error) {
 	c := &webCrawler{}
-	u, err := validateURL(url)
+	err := validateURL(url)
 	if err != nil {
 		return nil, err
 	}
-	c.Source = u
-	c.Fetcher = c.readURL
-	c.Parser = c.siteMap
+	c.Fetcher = c.fetcher
+	c.Parser = c.parser
 	return c, nil
 }
 
-func validateURL(rootURL string) (*url.URL, error) {
+func validateURL(rootURL string) error {
 	url, err := url.Parse(rootURL)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	reg, err := regexp.Compile(regExpDomain)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	if !reg.MatchString(url.Host) {
 		if url.Host == "" {
-			return nil, errors.New("empty host name")
+			return errors.New("empty host name")
 		}
-		return nil, fmt.Errorf("invalid host name %s", url.Host)
+		return fmt.Errorf("invalid host name %s", url.Host)
 	}
-	return url, nil
+	return nil
 }
 
-func (c *webCrawler) readURL() (io.ReadCloser, error) {
-	resp, err := http.Get(c.Source.String())
+func (c *webCrawler) fetcher(source string) (io.ReadCloser, error) {
+	resp, err := http.Get(source)
 	if err != nil {
 		return nil, err
 	}

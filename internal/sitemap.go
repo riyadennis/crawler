@@ -8,11 +8,15 @@ import (
 	"strings"
 )
 
-func (c *webCrawler) siteMap(reader io.ReadCloser) map[int]string {
+func (c *webCrawler) parser(source string, reader io.ReadCloser) map[int]string {
 	links := make(map[int]string)
 	token := html.NewTokenizer(reader)
 	defer reader.Close()
 	i := 0
+	u, err := url.Parse(source)
+	if err != nil {
+		return nil
+	}
 	for {
 		if token.Err() == io.EOF {
 			break
@@ -24,9 +28,9 @@ func (c *webCrawler) siteMap(reader io.ReadCloser) map[int]string {
 		switch tokenType {
 		case html.StartTagToken:
 			t := token.Token()
-			link := searchLinks(t, c.Source.Host)
+			link := searchLinks(t, u.Host)
 			if link != "" {
-				if checkDomain(c.Source.Host, link) {
+				if checkDomain(u.Host, link) {
 					links[i] = link
 					i++
 				}
