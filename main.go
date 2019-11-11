@@ -16,7 +16,7 @@ func main() {
 	}
 	ch := make(chan map[int]map[int]string, *depth)
 	go webCrawler.Crawl(*rootURL, *depth, ch)
+	webCrawler.Display(ch)
 
-	internal.Display(ch)
 	close(ch)
 }
