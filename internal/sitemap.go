@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func (c *webCrawler) parser(source string, reader io.ReadCloser) map[int]string {
+func parser(source string, reader io.ReadCloser) map[int]string {
 	links := make(map[int]string)
 	token := html.NewTokenizer(reader)
 	defer reader.Close()

@@ -14,7 +14,7 @@ func (c *webCrawler) Crawl(source string, depth int, ch chan map[int]map[int]str
 	}
 	links := make(map[int]map[int]string)
 
-	links[depth] = linksFrmURL(source)
+	links[depth] = c.linksFrmURL(source)
 	ch <- links
 	for _, l := range links {
 		for _, li := range l {

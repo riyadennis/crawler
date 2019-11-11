@@ -25,16 +25,12 @@ func NewWebCrawler(url string) (*webCrawler, error) {
 	if err != nil {
 		return nil, err
 	}
-	c.Fetcher = c.fetcher
-	c.Parser = c.parser
+	c.Fetcher = fetcher
+	c.Parser = parser
 	return c, nil
 }
 
-func linksFrmURL(url string) map[int]string {
-	c, err := NewWebCrawler(url)
-	if err != nil {
-		fmt.Printf("failed to create crawler :: %v", err)
-	}
+func (c *webCrawler) linksFrmURL(url string) map[int]string {
 	r, err := c.Fetcher(url)
 	if err != nil {
 		fmt.Printf("failed to fetch:: %v", err)
@@ -61,7 +57,7 @@ func validateURL(rootURL string) error {
 	return nil
 }
 
-func (c *webCrawler) fetcher(source string) (io.ReadCloser, error) {
+func fetcher(source string) (io.ReadCloser, error) {
 	resp, err := http.Get(source)
 	if err != nil {
 		return nil, err
