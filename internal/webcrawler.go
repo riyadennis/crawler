@@ -18,18 +18,6 @@ type webCrawler struct {
 	Parser  func(source string, reader io.ReadCloser) map[int]string
 }
 
-// NewWebCrawler initialises the webCrawler to search for links in a webpage
-func NewWebCrawler(url string) (*webCrawler, error) {
-	c := &webCrawler{}
-	err := validateURL(url)
-	if err != nil {
-		return nil, err
-	}
-	c.Fetcher = fetcher
-	c.Parser = parser
-	return c, nil
-}
-
 func (c *webCrawler) linksFrmURL(url string) map[int]string {
 	r, err := c.Fetcher(url)
 	if err != nil {

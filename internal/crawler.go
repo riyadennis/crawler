@@ -7,6 +7,18 @@ type Crawler interface {
 	Display(ch chan map[int]map[int]string)
 }
 
+// NewCrawler initialises the Crawler to search for links in a web page
+func NewCrawler(url string) (Crawler, error) {
+	c := &webCrawler{}
+	err := validateURL(url)
+	if err != nil {
+		return nil, err
+	}
+	c.Fetcher = fetcher
+	c.Parser = parser
+	return c, nil
+}
+
 //Crawl does the scrapping of links and sub links
 func (c *webCrawler) Crawl(source string, depth int, ch chan map[int]map[int]string) {
 	if depth <= 0 {

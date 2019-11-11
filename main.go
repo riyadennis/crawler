@@ -10,7 +10,7 @@ func main() {
 	depth := flag.Int("depth", 2, "depth for crawling")
 	flag.Parse()
 
-	webCrawler, err := internal.NewWebCrawler(*rootURL)
+	webCrawler, err := internal.NewCrawler(*rootURL)
 	if err != nil {
 		panic(err)
 	}
