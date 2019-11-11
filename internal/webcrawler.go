@@ -14,17 +14,17 @@ const regExpDomain = `^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$`
 
 // webCrawler holds data that we need to parse a web page
 type webCrawler struct {
-	Fetcher func(source string) (io.ReadCloser, error)
-	Parser  func(source string, reader io.ReadCloser) map[int]string
+	Content func(url string) (io.ReadCloser, error)
+	SiteMap func(url string, reader io.ReadCloser) map[int]string
 }
 
 func (c *webCrawler) linksFrmURL(url string) map[int]string {
-	r, err := c.Fetcher(url)
+	r, err := c.Content(url)
 	if err != nil {
 		fmt.Printf("failed to fetch:: %v", err)
 	}
 	defer r.Close()
-	return c.Parser(url, r)
+	return c.SiteMap(url, r)
 }
 
 func validateURL(rootURL string) error {
@@ -45,7 +45,7 @@ func validateURL(rootURL string) error {
 	return nil
 }
 
-func fetcher(source string) (io.ReadCloser, error) {
+func content(source string) (io.ReadCloser, error) {
 	resp, err := http.Get(source)
 	if err != nil {
 		return nil, err

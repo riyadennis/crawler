@@ -14,8 +14,8 @@ func NewCrawler(url string) (Crawler, error) {
 	if err != nil {
 		return nil, err
 	}
-	c.Fetcher = fetcher
-	c.Parser = parser
+	c.Content = content
+	c.SiteMap = siteMap
 	return c, nil
 }
 
