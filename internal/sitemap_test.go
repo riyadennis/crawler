@@ -57,13 +57,10 @@ func TestTokenize(t *testing.T) {
 			links: map[int]string{0: "http://www.google.co.uk/imghp?hl=en&tab=w"},
 		},
 	}
-	c, err := NewCrawler("http://www.google.co.uk")
-	if err != nil {
-		t.Fatal(err)
-	}
+	rootURL := "http://www.google.co.uk"
 	for _, sc := range scenarios {
 		t.Run(sc.name, func(t *testing.T) {
-			links := c.siteMap(ioutil.NopCloser(strings.NewReader(sc.html)))
+			links := siteMap(rootURL, ioutil.NopCloser(strings.NewReader(sc.html)))
 			if !cmp.Equal(links, sc.links) {
 				t.Errorf("got %v, want %v", links, sc.links)
 			}

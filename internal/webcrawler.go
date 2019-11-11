@@ -1,13 +1,17 @@
 package internal
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"regexp"
 	"strings"
+
+	"github.com/sirupsen/logrus"
 )
 
 const regExpDomain = `^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$`
@@ -18,12 +22,25 @@ type webCrawler struct {
 	SiteMap func(url string, reader io.ReadCloser) map[int]string
 }
 
-func (c *webCrawler) linksFrmURL(url string) map[int]string {
+func (c *webCrawler) extractLinks(url string) map[int]string {
+	if c == nil {
+		logrus.Errorf("failed to extract links, empty crawler")
+		return nil
+	}
+	if c.Content == nil {
+		logrus.Errorf("method to extract content not set")
+		return nil
+	}
 	r, err := c.Content(url)
 	if err != nil {
-		fmt.Printf("failed to fetch:: %v", err)
+		logrus.Errorf("failed to fetch:: %v", err)
+		return nil
 	}
 	defer r.Close()
+	if c.SiteMap == nil {
+		logrus.Errorf("failed to create site map:: %v", err)
+		return nil
+	}
 	return c.SiteMap(url, r)
 }
 
@@ -61,4 +78,12 @@ func content(source string) (io.ReadCloser, error) {
 		return nil, fmt.Errorf("response content type was %s not text/html\n", ctype)
 	}
 	return body, nil
+}
+
+func fileContent(name string) (io.ReadCloser, error) {
+	cnt, err := ioutil.ReadFile(name)
+	if err != nil {
+		return nil, err
+	}
+	return ioutil.NopCloser(bytes.NewReader(cnt)), nil
 }

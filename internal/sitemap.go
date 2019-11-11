@@ -8,12 +8,12 @@ import (
 	"strings"
 )
 
-func siteMap(source string, reader io.ReadCloser) map[int]string {
+func siteMap(rootURL string, reader io.ReadCloser) map[int]string {
 	links := make(map[int]string)
 	token := html.NewTokenizer(reader)
 	defer reader.Close()
 	i := 0
-	u, err := url.Parse(source)
+	u, err := url.Parse(rootURL)
 	if err != nil {
 		return nil
 	}
