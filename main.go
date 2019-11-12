@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	rootURL := flag.String("root", "https://monzo.com", "root ur2l")
+	rootURL := flag.String("root", "https://google.com", "root ur2l")
 	depth := flag.Int("depth", 2, "depth for crawling")
 	flag.Parse()
 

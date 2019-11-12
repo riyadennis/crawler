@@ -40,11 +40,13 @@ func (c *webCrawler) Display(ch chan map[int]map[int]string) {
 	for {
 		select {
 		case dlinks := <-ch:
-			for _, dl := range dlinks {
-				for _, l := range dl {
-					fmt.Printf("\n from channel %s \n", l)
+			go func(){
+				for _, dl := range dlinks {
+					for _, l := range dl {
+						fmt.Printf("\n from channel %s \n", l)
+					}
 				}
-			}
+			}()
 		}
 	}
 }
