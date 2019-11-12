@@ -1,10 +1,13 @@
 package internal
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/disiqueira/gotree"
+)
 
 type Crawler interface {
 	Crawl(source string, depth int, ch chan map[int]map[int]string)
-	Display(ch chan map[int]map[int]string)
+	Display(source string,ch chan map[int]map[int]string)
 }
 
 // NewCrawler initialises the Crawler to search for links in a web page
@@ -36,17 +39,22 @@ func (c *webCrawler) Crawl(source string, depth int, ch chan map[int]map[int]str
 }
 
 //Display will listen to the channel and print results into  console
-func (c *webCrawler) Display(ch chan map[int]map[int]string) {
+func (c *webCrawler) Display(source string, ch chan map[int]map[int]string) {
+	artist := gotree.New(source)
 	for {
 		select {
 		case dlinks := <-ch:
 			go func(){
 				for _, dl := range dlinks {
+					child := artist.Add(dl[0])
 					for _, l := range dl {
-						fmt.Printf("\n from channel %s \n", l)
+						child.Add(l)
+						//fmt.Printf("\n page %d: %s \n", i, l)
 					}
 				}
+				fmt.Println(artist.Print())
 			}()
 		}
 	}
+
 }
