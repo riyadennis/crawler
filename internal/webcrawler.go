@@ -16,7 +16,6 @@ const regExpDomain = `^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$`
 
 // webCrawler holds data that we need to parse a web page
 type webCrawler struct {
-	Done chan struct{}
 	Content func(url string) (io.ReadCloser, error)
 	SiteMap func(url string, reader io.ReadCloser) map[int]string
 }
@@ -48,10 +47,10 @@ func validateURL(rootURL string) error {
 	if err != nil {
 		return err
 	}
+	if url.Host == "" {
+		return errors.New("empty host name")
+	}
 	if !reg.MatchString(url.Host) {
-		if url.Host == "" {
-			return errors.New("empty host name")
-		}
 		return fmt.Errorf("invalid host name %s", url.Host)
 	}
 	return nil
@@ -69,8 +68,7 @@ func content(source string) (io.ReadCloser, error) {
 	}
 	//check response content type
 	cType := resp.Header.Get("Content-Type")
-	if !strings.HasPrefix(cType, "text/h" +
-		"tml") {
+	if !strings.HasPrefix(cType, "text/html") {
 		return nil, fmt.Errorf("response content type was %s not text/html\n", cType)
 	}
 	return body, nil
