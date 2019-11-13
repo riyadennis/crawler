@@ -68,9 +68,10 @@ func content(source string) (io.ReadCloser, error) {
 		return nil, errors.New("unable to load the url")
 	}
 	//check response content type
-	ctype := resp.Header.Get("Content-Type")
-	if !strings.HasPrefix(ctype, "text/html") {
-		return nil, fmt.Errorf("response content type was %s not text/html\n", ctype)
+	cType := resp.Header.Get("Content-Type")
+	if !strings.HasPrefix(cType, "text/h" +
+		"tml") {
+		return nil, fmt.Errorf("response content type was %s not text/html\n", cType)
 	}
 	return body, nil
 }
