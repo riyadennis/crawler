@@ -45,8 +45,8 @@ func (c *webCrawler) Display(source string, ch chan map[int]map[int]string) {
 	for {
 		select {
 		case dlinks := <-ch:
-				for _, dl := range dlinks {
-					child := tree.Add(dl[0])
+				for i, dl := range dlinks {
+					child := tree.Add(dl[i])
 					for _, l := range dl {
 						child.Add(l)
 					}
