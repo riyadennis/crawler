@@ -2,10 +2,11 @@ package internal
 
 import (
 	"fmt"
-	"golang.org/x/net/html"
 	"io"
 	"net/url"
 	"strings"
+
+	"golang.org/x/net/html"
 )
 
 func siteMap(rootURL string, reader io.ReadCloser) map[int]string {

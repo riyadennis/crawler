@@ -1,8 +1,9 @@
 package internal
 
 import (
-	"github.com/google/go-cmp/cmp"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 )
 
 func TestLinksFromURL(t *testing.T) {
