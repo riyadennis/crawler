@@ -10,8 +10,6 @@ import (
 	"net/url"
 	"regexp"
 	"strings"
-
-	"github.com/sirupsen/logrus"
 )
 
 const regExpDomain = `^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$`
@@ -25,21 +23,17 @@ type webCrawler struct {
 
 func (c *webCrawler) extractLinks(url string) map[int]string {
 	if c == nil {
-		logrus.Errorf("failed to extract links, empty crawler")
 		return nil
 	}
 	if c.Content == nil {
-		logrus.Errorf("method to extract content not set")
 		return nil
 	}
 	r, err := c.Content(url)
 	if err != nil {
-		logrus.Errorf("failed to fetch:: %v", err)
 		return nil
 	}
 	defer r.Close()
 	if c.SiteMap == nil {
-		logrus.Errorf("failed to create site map:: %v", err)
 		return nil
 	}
 	return c.SiteMap(url, r)

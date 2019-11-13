@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"fmt"
 	"github.com/disiqueira/gotree"
 )
 
@@ -41,17 +40,17 @@ func (c *webCrawler) Crawl(source string, depth int, ch chan map[int]map[int]str
 
 //Display will listen to the channel and print results into  console
 func (c *webCrawler) Display(source string, ch chan map[int]map[int]string) {
-	artist := gotree.New(source)
+	tree := gotree.New(source)
 	for {
 		select {
 		case dlinks := <-ch:
 				for _, dl := range dlinks {
-					child := artist.Add(dl[0])
+					child := tree.Add(dl[0])
 					for _, l := range dl {
 						child.Add(l)
 					}
 				}
-				fmt.Println(artist.Print())
+
 		case <-c.Done:
 			return
 		}
