@@ -21,6 +21,5 @@ func main() {
 	defer cancel()
 
 	go webCrawler.Crawl(ctx,*rootURL, *depth,0, ch)
-	webCrawler.Display(ctx,*rootURL, ch)
-	close(ch)
+	webCrawler.Display(ctx,*rootURL,*depth, ch)
 }

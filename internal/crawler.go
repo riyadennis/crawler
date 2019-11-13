@@ -8,7 +8,7 @@ import (
 
 type Crawler interface {
 	Crawl(ctx context.Context, source string, depth, index int, ch chan map[int]map[int]string)
-	Display(ctx context.Context, source string,ch chan map[int]map[int]string)
+	Display(ctx context.Context, source string,depth int,ch <-chan map[int]map[int]string)
 }
 
 // NewCrawler initialises the Crawler to search for links in a web page
@@ -41,24 +41,27 @@ func (c *webCrawler) Crawl(ctx context.Context, source string,
 	for _, li := range link {
 		c.Crawl(ctx, li, depth-1, index, ch)
 	}
+	close(ch)
 	<-ctx.Done()
 }
 
 //Display will listen to the channel and print results into  console
-func (c *webCrawler) Display(ctx context.Context, source string, ch chan map[int]map[int]string){
+func (c *webCrawler) Display(ctx context.Context, source string,depth int, ch <-chan map[int]map[int]string){
+	ch1 := make(chan map[int]map[int]string)
+	go func(){
+		for  dl := range  ch {
+			ch1 <- dl
+		}
+		close(ch1)
+	}()
 	tree := gotree.New(source)
-	for {
-		select {
-		case dlinks := <-ch:
-			for i, dl := range dlinks {
-				child := tree.Add(dl[i])
-				for _, l := range dl {
-					child.Add(l)
-				}
-				fmt.Println(tree.Print())
+	for i:=0;i<depth;i++{
+		for i, dl := range <-ch {
+			child := tree.Add(dl[i])
+			for _, dl := range dl {
+				child.Add(dl)
 			}
-		case <-ctx.Done():
-			return
 		}
 	}
+	fmt.Println(tree.Print())
 }
