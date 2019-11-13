@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"fmt"
 	"github.com/disiqueira/gotree"
 )
 
@@ -49,12 +50,11 @@ func (c *webCrawler) Display(source string, ch chan map[int]map[int]string) {
 					for _, l := range dl {
 						child.Add(l)
 					}
+					fmt.Println(tree.Print())
 				}
-
 		case <-c.Done:
 			return
 		}
-
 	}
 
 }
