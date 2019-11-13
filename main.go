@@ -11,16 +11,17 @@ func main() {
 	depth := flag.Int("depth", 3, "depth for crawling")
 	flag.Parse()
 
-	webCrawler, err := internal.NewCrawler(*rootURL)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	webCrawler, err := internal.NewCrawler(ctx, *rootURL)
 	if err != nil {
 		panic(err)
 	}
 	ch := make(chan map[int]map[int]string, *depth)
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
-	go webCrawler.Crawl(ctx, *rootURL, *depth,0, ch)
-	webCrawler.Display(ctx, *rootURL, ch)
+
+	go webCrawler.Crawl(*rootURL, *depth,0, ch)
+	webCrawler.Display(*rootURL, ch)
 
 	close(ch)
 }
