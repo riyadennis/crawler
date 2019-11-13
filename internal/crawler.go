@@ -36,6 +36,7 @@ func (c *webCrawler) Crawl(source string, depth int, ch chan map[int]map[int]str
 			c.Crawl(li, depth-1, ch)
 		}
 	}
+	c.Done <- struct{}{}
 }
 
 //Display will listen to the channel and print results into  console
@@ -44,17 +45,17 @@ func (c *webCrawler) Display(source string, ch chan map[int]map[int]string) {
 	for {
 		select {
 		case dlinks := <-ch:
-			go func(){
 				for _, dl := range dlinks {
 					child := artist.Add(dl[0])
 					for _, l := range dl {
 						child.Add(l)
-						//fmt.Printf("\n page %d: %s \n", i, l)
 					}
 				}
 				fmt.Println(artist.Print())
-			}()
+		case <-c.Done:
+			return
 		}
+
 	}
 
 }
