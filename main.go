@@ -3,11 +3,12 @@ package main
 import (
 	"context"
 	"flag"
+
 	"github.com/riyadennis/crawler/internal"
 )
 
 func main() {
-	rootURL := flag.String("root", "https://google.com", "root ur2l")
+	rootURL := flag.String("root", "https://monzo.com", "root ur2l")
 	depth := flag.Int("depth", 3, "depth for crawling")
 	flag.Parse()
 
@@ -20,6 +21,6 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	go webCrawler.Crawl(ctx,*rootURL, *depth,0, ch)
-	webCrawler.Display(ctx,*rootURL,*depth, ch)
+	go webCrawler.Crawl(ctx, *rootURL, *depth, 0, ch)
+	webCrawler.Display(ctx, *rootURL, *depth, ch)
 }
