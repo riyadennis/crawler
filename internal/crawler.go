@@ -29,10 +29,10 @@ func (c *webCrawler) Crawl(source string, depth int, ch chan map[int]map[int]str
 	}
 	links := make(map[int]map[int]string)
 
-	links[depth] = c.extractLinks(source)
-	ch <- links
-	for _, l := range links {
-		for _, li := range l {
+	if link := c.extractLinks(source); link !=nil{
+		links[depth] = link
+		ch<-links
+		for _, li := range link {
 			c.Crawl(li, depth-1, ch)
 		}
 	}
