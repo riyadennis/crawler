@@ -36,12 +36,13 @@ func (c *webCrawler) Crawl(ctx context.Context, source string,
 	if link == nil {
 		return
 	}
-	links[index] = link
-	ch <- links
-	index++
-	for _, li := range link {
-		c.Crawl(ctx, li, depth, index, ch)
+	for i, li := range link {
+		links[i] = c.extractLinks(li)
+		if i >= depth{
+			break
+		}
 	}
+	ch <- links
 	close(ch)
 	<-ctx.Done()
 }
