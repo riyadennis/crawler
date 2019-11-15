@@ -16,11 +16,10 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	ch := make(chan map[int]map[int]string, *depth)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	go webCrawler.Crawl(ctx, *rootURL, *depth, 0, ch)
-	webCrawler.Display(ctx, *rootURL, *depth, ch)
+	webCrawler.Display(ctx, *rootURL, *depth,
+		webCrawler.Crawl(ctx, *rootURL, *depth, 0))
 }

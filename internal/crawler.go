@@ -8,7 +8,7 @@ import (
 )
 
 type Crawler interface {
-	Crawl(ctx context.Context, source string, depth, index int, ch chan map[int]map[int]string)
+	Crawl(ctx context.Context, source string, depth, index int)<-chan map[int]map[int]string
 	Display(ctx context.Context, source string, depth int, ch <-chan map[int]map[int]string)
 }
 
@@ -26,15 +26,16 @@ func NewCrawler(url string) (Crawler, error) {
 }
 
 //Crawl does the scrapping of links and sub links
-func (c *webCrawler) Crawl(ctx context.Context, source string,
-	depth, index int, ch chan map[int]map[int]string) {
+func (c *webCrawler) Crawl(ctx context.Context,
+	source string, depth, index int) <-chan map[int]map[int]string {
+	ch := make(chan map[int]map[int]string, depth)
 	if depth <= 0 {
-		return
+		return ch
 	}
 	links := make(map[int]map[int]string)
 	link := c.extractLinks(source)
 	if link == nil {
-		return
+		return ch
 	}
 	var wg sync.WaitGroup
 	wg.Add(1)
@@ -53,6 +54,7 @@ func (c *webCrawler) Crawl(ctx context.Context, source string,
 		wg.Wait()
 		close(ch)
 	}()
+	return ch
 }
 
 //Display will listen to the channel and print results into  console
