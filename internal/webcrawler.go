@@ -2,6 +2,7 @@ package internal
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -17,10 +18,10 @@ const regExpDomain = `^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$`
 // webCrawler holds data that we need to parse a web page
 type webCrawler struct {
 	Content func(url string) (io.ReadCloser, error)
-	SiteMap func(url string, reader io.ReadCloser) map[int]string
+	SiteMap func(ctx context.Context, url string, reader io.ReadCloser) map[int]string
 }
 
-func (c *webCrawler) extractLinks(url string) map[int]string {
+func (c *webCrawler) extractLinks(ctx context.Context, url string) map[int]string {
 	if c == nil {
 		return nil
 	}
@@ -35,7 +36,7 @@ func (c *webCrawler) extractLinks(url string) map[int]string {
 	if c.SiteMap == nil {
 		return nil
 	}
-	return c.SiteMap(url, r)
+	return c.SiteMap(ctx,url, r)
 }
 
 func validateURL(rootURL string) error {
