@@ -60,7 +60,7 @@ func (c *webCrawler) Crawl(ctx context.Context,
 //Display will listen to the channel and print results into  console
 func (c *webCrawler) Display(ctx context.Context, source string,
 	depth int, ch <-chan map[int]map[int]string) {
-	ch1 := make(chan map[int]map[int]string)
+	ch1 := make(chan map[int]map[int]string, depth)
 	go func() {
 		for dl := range ch {
 			ch1 <- dl
