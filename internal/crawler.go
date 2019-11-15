@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/disiqueira/gotree"
 	"golang.org/x/net/context"
+	"sync"
 )
 
 type Crawler interface {
@@ -35,15 +36,23 @@ func (c *webCrawler) Crawl(ctx context.Context, source string,
 	if link == nil {
 		return
 	}
-	for i, li := range link {
-		links[i] = c.extractLinks(li)
-		if i > depth{
-			break
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func(){
+		for i, li := range link {
+			links[i] = c.extractLinks(li)
+			if i > depth{
+				break
+			}
 		}
-	}
-	ch <- links
-	close(ch)
-	<-ctx.Done()
+		ch <- links
+		wg.Done()
+	}()
+
+	go func(){
+		wg.Wait()
+		close(ch)
+	}()
 }
 
 //Display will listen to the channel and print results into  console
