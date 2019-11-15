@@ -2,7 +2,6 @@ package internal
 
 import (
 	"fmt"
-
 	"github.com/disiqueira/gotree"
 	"golang.org/x/net/context"
 )
@@ -38,7 +37,7 @@ func (c *webCrawler) Crawl(ctx context.Context, source string,
 	}
 	for i, li := range link {
 		links[i] = c.extractLinks(li)
-		if i >= depth{
+		if i > depth{
 			break
 		}
 	}
