@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/url"
 	"strings"
+	"sync"
 
 	"golang.org/x/net/html"
 )
@@ -30,33 +31,46 @@ func siteMap(rootURL string, reader io.ReadCloser) map[int]string {
 		switch tokenType {
 		case html.StartTagToken:
 			t := token.Token()
-			link := searchLinks(t, u.Host)
-			if link != "" {
-				if checkDomain(u.Host, link) {
-					links[i] = link
-					i++
+			select {
+			case link := <-searchLinks(t, u.Host):
+				if link != "" {
+					if checkDomain(u.Host, link) {
+						links[i] = link
+						i++
+					}
 				}
+			default:
+				break
 			}
 		}
 	}
 	return links
 }
 
-func searchLinks(t html.Token, hostname string) string {
+func searchLinks(t html.Token, hostname string) <-chan string {
+	ch := make(chan string)
+	var wg sync.WaitGroup
 	if t.Data == "a" {
-		for _, att := range t.Attr {
-			if att.Key == "href" {
-				if att.Val != "#" {
-					// if its an internal link we need to append full path
-					if strings.HasPrefix(att.Val, "/") {
-						return fmt.Sprintf("https://%s%s", hostname, att.Val)
+		wg.Add(1)
+		go func() {
+			for _, att := range t.Attr {
+				if att.Key == "href" {
+					if att.Val != "#" {
+						// if its an internal link we need to append full path
+						if strings.HasPrefix(att.Val, "/") {
+							ch <- fmt.Sprintf("https://%s%s", hostname, att.Val)
+						}
 					}
-					return att.Val
 				}
 			}
-		}
+			wg.Done()
+		}()
 	}
-	return ""
+	go func() {
+		wg.Wait()
+		close(ch)
+	}()
+	return ch
 }
 
 func checkDomain(hostname, link string) bool {
