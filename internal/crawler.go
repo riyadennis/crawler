@@ -31,11 +31,11 @@ func (c *webCrawler) Crawl(ctx context.Context,
 	if depth <= 0 {
 		return ch
 	}
-	links := make(map[int]map[int]string)
 	link := c.extractLinks(source)
 	if link == nil {
 		return ch
 	}
+	links := make(map[int]map[int]string)
 	go func(){
 		for i, li := range link {
 			links[i] = c.extractLinks(li)
@@ -58,12 +58,17 @@ func (c *webCrawler) Crawl(ctx context.Context,
 func (c *webCrawler) Display(ctx context.Context, source string,
 	depth int, ch <-chan map[int]map[int]string) {
 	tree := gotree.New(source)
-	for i, dl := range <-ch {
-		child := tree.Add(dl[i])
-		for _, dl := range dl {
-			child.Add(dl)
-		}
+	select{
+		case links := <-ch:
+			for i, dl := range links {
+				child := tree.Add(dl[i])
+				for _, dl := range dl {
+					child.Add(dl)
+				}
+			}
+			fmt.Println(tree.Print())
+		case <-ctx.Done():
+			return
 	}
-	fmt.Println(tree.Print())
-	<-ctx.Done()
+
 }
