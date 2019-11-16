@@ -10,7 +10,6 @@ import (
 )
 
 func siteMap(rootURL string, reader io.ReadCloser) map[int]string {
-	links := make(map[int]string)
 	token := html.NewTokenizer(reader)
 	defer reader.Close()
 	i := 0
@@ -18,11 +17,13 @@ func siteMap(rootURL string, reader io.ReadCloser) map[int]string {
 	if err != nil {
 		return nil
 	}
+	links := make(map[int]string)
 	for {
 		if token.Err() == io.EOF {
 			break
 		}
 		if token.Err() != nil {
+			//TODO handle error properly
 			return nil
 		}
 		tokenType := token.Next()

@@ -38,9 +38,8 @@ func (c *webCrawler) Crawl(ctx context.Context,
 	links := make(map[int]map[int]string)
 	go func(){
 		for i, li := range link {
-			links[i] = c.extractLinks(li)
-			if i > depth{
-				break
+			if i < depth{
+				links[i] = c.extractLinks(li)
 			}
 		}
 		ch <- links
