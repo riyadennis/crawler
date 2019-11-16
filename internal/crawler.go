@@ -27,14 +27,14 @@ func NewCrawler(url string) (Crawler, error) {
 //Crawl does the scrapping of links and sub links
 func (c *webCrawler) Crawl(ctx context.Context,
 	source string, depth, index int) <-chan map[int]map[int]string {
-	ch := make(chan map[int]map[int]string, depth)
 	if depth <= 0 {
-		return ch
+		return nil
 	}
 	link := c.extractLinks(source)
 	if link == nil {
-		return ch
+		return nil
 	}
+	ch := make(chan map[int]map[int]string, depth)
 	links := make(map[int]map[int]string)
 	go func(){
 		for i, li := range link {
@@ -70,5 +70,4 @@ func (c *webCrawler) Display(ctx context.Context, source string,
 		case <-ctx.Done():
 			return
 	}
-
 }
