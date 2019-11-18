@@ -2,12 +2,13 @@ package internal
 
 import (
 	"fmt"
+
 	"github.com/disiqueira/gotree"
 	"golang.org/x/net/context"
 )
 
 type Crawler interface {
-	Crawl(ctx context.Context, source string, depth, index int)<-chan map[int]map[int]string
+	Crawl(ctx context.Context, source string, depth, index int) <-chan map[int]map[int]string
 	Display(ctx context.Context, source string, depth int, ch <-chan map[int]map[int]string)
 }
 
@@ -30,22 +31,22 @@ func (c *webCrawler) Crawl(ctx context.Context,
 	if depth <= 0 {
 		return nil
 	}
-	link := c.extractLinks(source)
+	link := c.extractLinks(ctx, source)
 	if link == nil {
 		return nil
 	}
 	ch := make(chan map[int]map[int]string, depth)
 	links := make(map[int]map[int]string)
-	go func(){
+	go func() {
 		for i, li := range link {
-			if i < depth{
-				links[i] = c.extractLinks(li)
+			if i < depth {
+				links[i] = c.extractLinks(ctx, li)
 			}
 		}
 		ch <- links
 	}()
 
-	go func(){
+	go func() {
 		<-ctx.Done()
 		close(ch)
 	}()
@@ -57,16 +58,16 @@ func (c *webCrawler) Crawl(ctx context.Context,
 func (c *webCrawler) Display(ctx context.Context, source string,
 	depth int, ch <-chan map[int]map[int]string) {
 	tree := gotree.New(source)
-	select{
-		case links := <-ch:
-			for i, dl := range links {
-				child := tree.Add(dl[i])
-				for _, dl := range dl {
-					child.Add(dl)
-				}
+	select {
+	case links := <-ch:
+		for i, dl := range links {
+			child := tree.Add(dl[i])
+			for _, dl := range dl {
+				child.Add(dl)
 			}
-			fmt.Println(tree.Print())
-		case <-ctx.Done():
-			return
+		}
+		fmt.Println(tree.Print())
+	case <-ctx.Done():
+		return
 	}
 }

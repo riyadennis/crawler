@@ -5,12 +5,12 @@ import (
 	"io"
 	"net/url"
 	"strings"
-	"sync"
 
+	"golang.org/x/net/context"
 	"golang.org/x/net/html"
 )
 
-func siteMap(rootURL string, reader io.ReadCloser) map[int]string {
+func siteMap(ctx context.Context, rootURL string, reader io.ReadCloser) map[int]string {
 	token := html.NewTokenizer(reader)
 	defer reader.Close()
 	i := 0
@@ -31,46 +31,33 @@ func siteMap(rootURL string, reader io.ReadCloser) map[int]string {
 		switch tokenType {
 		case html.StartTagToken:
 			t := token.Token()
-			select {
-			case link := <-searchLinks(t, u.Host):
-				if link != "" {
-					if checkDomain(u.Host, link) {
-						links[i] = link
-						i++
-					}
+			link := searchLinks(ctx, t, u.Host)
+			if link != "" {
+				if checkDomain(u.Host, link) {
+					links[i] = link
+					i++
 				}
-			default:
-				break
 			}
 		}
 	}
 	return links
 }
 
-func searchLinks(t html.Token, hostname string) <-chan string {
-	ch := make(chan string)
-	var wg sync.WaitGroup
+func searchLinks(ctx context.Context, t html.Token, hostname string) string {
 	if t.Data == "a" {
-		wg.Add(1)
-		go func() {
-			for _, att := range t.Attr {
-				if att.Key == "href" {
-					if att.Val != "#" {
-						// if its an internal link we need to append full path
-						if strings.HasPrefix(att.Val, "/") {
-							ch <- fmt.Sprintf("https://%s%s", hostname, att.Val)
-						}
+		for _, att := range t.Attr {
+			if att.Key == "href" {
+				if att.Val != "#" {
+					// if its an internal link we need to append full path
+					if strings.HasPrefix(att.Val, "/") {
+						return fmt.Sprintf("https://%s%s", hostname, att.Val)
 					}
+					return att.Val
 				}
 			}
-			wg.Done()
-		}()
+		}
 	}
-	go func() {
-		wg.Wait()
-		close(ch)
-	}()
-	return ch
+	return ""
 }
 
 func checkDomain(hostname, link string) bool {

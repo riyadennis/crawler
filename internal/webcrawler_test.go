@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"context"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -52,9 +53,10 @@ func TestLinksFromURL(t *testing.T) {
 			},
 		},
 	}
+	ctx := context.TODO()
 	for _, sc := range scenarios {
 		t.Run(sc.name, func(t *testing.T) {
-			links := sc.crawler.extractLinks(sc.url)
+			links := sc.crawler.extractLinks(ctx, sc.url)
 			if !cmp.Equal(links, sc.links) {
 				t.Errorf("unexpected links,got %v, want %v", links, sc.links)
 			}
