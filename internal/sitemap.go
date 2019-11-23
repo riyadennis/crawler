@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/url"
 	"strings"
+	"sync"
 
 	"golang.org/x/net/context"
 	"golang.org/x/net/html"
@@ -19,27 +20,33 @@ func siteMap(ctx context.Context, rootURL string, reader io.ReadCloser) map[int]
 		return nil
 	}
 	links := make(map[int]string)
-	for {
-		if token.Err() == io.EOF {
-			break
-		}
-		if token.Err() != nil {
-			//TODO handle error properly
-			return nil
-		}
-		tokenType := token.Next()
-		switch tokenType {
-		case html.StartTagToken:
-			t := token.Token()
-			link := searchLinks(ctx, t, u.Host)
-			if link != "" {
-				if checkDomain(u.Host, link) {
-					links[i] = link
-					i++
+	if token.Err() != nil {
+		//TODO handle error properly
+		return nil
+	}
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func(){
+		for {
+			if token.Err() == io.EOF {
+				break
+			}
+			tokenType := token.Next()
+			switch tokenType {
+			case html.StartTagToken:
+				t := token.Token()
+				link := searchLinks(ctx, t, u.Host)
+				if link != "" {
+					if checkDomain(u.Host, link) {
+						links[i] = link
+						i++
+					}
 				}
 			}
 		}
-	}
+		wg.Done()
+	}()
+	wg.Wait()
 	return links
 }
 
