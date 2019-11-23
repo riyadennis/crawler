@@ -2,6 +2,7 @@ package internal
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/disiqueira/gotree"
 	"golang.org/x/net/context"
@@ -39,7 +40,7 @@ func (c *webCrawler) Crawl(ctx context.Context,
 	links := make(map[int]map[int]string)
 	go func() {
 		for i, li := range link {
-			if i < depth {
+			if len(li) > 0 {
 				links[i] = c.extractLinks(ctx, li)
 			}
 		}
@@ -58,16 +59,26 @@ func (c *webCrawler) Crawl(ctx context.Context,
 func (c *webCrawler) Display(ctx context.Context, source string,
 	depth int, ch <-chan map[int]map[int]string) {
 	tree := gotree.New(source)
-	select {
-	case links := <-ch:
-		for i, dl := range links {
-			child := tree.Add(dl[i])
-			for _, dl := range dl {
-				child.Add(dl)
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func(){
+		select {
+		case links := <-ch:
+			for i, dl := range links {
+				if i < depth{
+					child := tree.Add(dl[i])
+					for _, dl := range dl {
+						if len(dl) > 0{
+							child.Add(dl)
+						}
+					}
+				}
 			}
+			fmt.Println(tree.Print())
+		case <-ctx.Done():
+			wg.Done()
+			return
 		}
-		fmt.Println(tree.Print())
-	case <-ctx.Done():
-		return
-	}
+	}()
+	wg.Wait()
 }
