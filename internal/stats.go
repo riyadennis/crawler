@@ -12,8 +12,10 @@ type MemStats struct {
 
 func GetMemStats() *MemStats {
 	var mem runtime.MemStats
+
 	fmt.Println("memory baseline ...")
 	runtime.ReadMemStats(&mem)
+
 	return &MemStats{
 		Alloc:      mem.Alloc,
 		TotalAlloc: mem.TotalAlloc,
