@@ -12,6 +12,7 @@ func main() {
 	rootURL := flag.String("root", "https://google.co.uk", "root ur2l")
 	depth := flag.Int("depth", 3, "depth for crawling")
 	stats := flag.Bool("stats", false, "show memory stats")
+	topic := flag.String("topic", "crawler", "topic to add links to")
 
 	flag.Parse()
 
@@ -20,15 +21,18 @@ func main() {
 		statsB = internal.GetMemStats()
 	}
 
-	webCrawler, err := internal.NewCrawler(*rootURL)
+	webCrawler, err := internal.NewCrawler(*rootURL, *topic)
 	if err != nil {
 		panic(err)
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-
-	webCrawler.Display(ctx, *rootURL, *depth, webCrawler.Crawl(ctx, *rootURL, *depth))
+	links, err := webCrawler.Crawl(ctx, *rootURL, *depth)
+	if err != nil {
+		panic(err)
+	}
+	webCrawler.Display(ctx, *rootURL, *depth, links)
 
 	if *stats {
 		statsE = internal.GetMemStats()

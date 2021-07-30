@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"errors"
 	"fmt"
 	"sync"
 
@@ -9,12 +10,12 @@ import (
 )
 
 type Crawler interface {
-	Crawl(ctx context.Context, source string, depth int) <-chan map[int]map[int]string
-	Display(ctx context.Context, source string, depth int, ch <-chan map[int]map[int]string)
+	Crawl(context.Context, string, int) (<-chan map[int]map[int]string, error)
+	Display(context.Context, string, int, <-chan map[int]map[int]string)
 }
 
 // NewCrawler initialises the Crawler to search for links in a web page
-func NewCrawler(url string) (Crawler, error) {
+func NewCrawler(url, topic string) (Crawler, error) {
 	err := validateURL(url)
 	if err != nil {
 		return nil, err
@@ -23,18 +24,19 @@ func NewCrawler(url string) (Crawler, error) {
 	return &webCrawler{
 		Content: content,
 		SiteMap: siteMap,
+		Topic: topic,
 	}, nil
 }
 
 // Crawl does the scrapping of links and sub links
-func (c *webCrawler) Crawl(ctx context.Context, source string, depth int) <-chan map[int]map[int]string {
+func (c *webCrawler) Crawl(ctx context.Context, source string, depth int) (<-chan map[int]map[int]string, error) {
 	if depth <= 0 {
-		return nil
+		return nil, errors.New("invalid depth argument")
 	}
 
-	link := c.extractLinks(source)
+	link, err := c.extractLinks(source)
 	if link == nil {
-		return nil
+		return nil, errors.New("no links in the page")
 	}
 
 	ch := make(chan map[int]map[int]string, depth)
@@ -43,7 +45,7 @@ func (c *webCrawler) Crawl(ctx context.Context, source string, depth int) <-chan
 	go func() {
 		for i, li := range link {
 			if len(li) > 0 {
-				links[i] = c.extractLinks(li)
+				links[i], err = c.extractLinks(li)
 			}
 		}
 		ch <- links
@@ -54,7 +56,7 @@ func (c *webCrawler) Crawl(ctx context.Context, source string, depth int) <-chan
 		close(ch)
 	}()
 
-	return ch
+	return ch, nil
 }
 
 // Display will listen to the channel and print results into  console
