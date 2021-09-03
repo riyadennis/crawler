@@ -21,13 +21,14 @@ func main() {
 		statsB = internal.GetMemStats()
 	}
 
-	webCrawler, err := internal.NewCrawler(*rootURL, *topic)
+	webCrawler, err := internal.NewWebCrawler(*rootURL, *topic)
 	if err != nil {
 		panic(err)
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
+
 	links, err := webCrawler.Crawl(ctx, *rootURL, *depth)
 	if err != nil {
 		panic(err)

@@ -14,8 +14,8 @@ type Crawler interface {
 	Display(context.Context, string, int, <-chan map[int]map[int]string)
 }
 
-// NewCrawler initialises the Crawler to search for links in a web page
-func NewCrawler(url, topic string) (Crawler, error) {
+// NewWebCrawler initialises the Crawler to search for links in a web page
+func NewWebCrawler(url, topic string) (*webCrawler, error) {
 	err := validateURL(url)
 	if err != nil {
 		return nil, err
