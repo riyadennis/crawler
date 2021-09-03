@@ -17,8 +17,8 @@ const regExpDomain = `^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$`
 // webCrawler holds data that we need to parse a web page
 type webCrawler struct {
 	Content func(url string) (io.ReadCloser, error)
-	SiteMap func(url,topic string, reader io.ReadCloser) (map[int]string, error)
-	Topic string
+	SiteMap func(url, topic string, reader io.ReadCloser) (map[int]string, error)
+	Topic   string
 }
 
 func (c *webCrawler) extractLinks(url string) (map[int]string, error) {
@@ -37,7 +37,7 @@ func (c *webCrawler) extractLinks(url string) (map[int]string, error) {
 		return nil, errors.New("no links in the page")
 	}
 
-	return c.SiteMap(url,c.Topic,  r)
+	return c.SiteMap(url, c.Topic, r)
 }
 
 func validateURL(rootURL string) error {

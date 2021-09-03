@@ -45,7 +45,7 @@ func siteMap(rootURL, topic string, reader io.ReadCloser) (map[int]string, error
 				if link != "" {
 					if checkDomain(u.Host, link) {
 						links[i] = link
-						_ = writeToKafka(topic,link,u.Host)
+						_ = writeToKafka(topic, link, u.Host)
 						i++
 					}
 				}
@@ -58,9 +58,9 @@ func siteMap(rootURL, topic string, reader io.ReadCloser) (map[int]string, error
 	return links, nil
 }
 
-		func writeToKafka(topic,link, host string) error{
-	producer,err := Producer([]string{"localhost:9092"})
-	if err != nil{
+func writeToKafka(topic, link, host string) error {
+	producer, err := Producer([]string{"localhost:9092"})
+	if err != nil {
 		return err
 	}
 
@@ -73,7 +73,7 @@ func siteMap(rootURL, topic string, reader io.ReadCloser) (map[int]string, error
 		Partition: 0,
 		Timestamp: time.Now(),
 	})
-	if err != nil{
+	if err != nil {
 		return err
 	}
 

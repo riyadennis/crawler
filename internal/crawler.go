@@ -24,7 +24,7 @@ func NewCrawler(url, topic string) (Crawler, error) {
 	return &webCrawler{
 		Content: content,
 		SiteMap: siteMap,
-		Topic: topic,
+		Topic:   topic,
 	}, nil
 }
 
