@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-
 	"github.com/riyadennis/crawler/internal"
 )
 
@@ -33,11 +32,26 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
 	webCrawler.Display(ctx, *rootURL, *depth, links)
+
 
 	if *stats {
 		statsE = internal.GetMemStats()
 		fmt.Printf("difference in alloc %d\n", statsB.Alloc-statsE.Alloc)
 		fmt.Printf("difference in TotalAlloc %d\n", statsB.TotalAlloc-statsE.TotalAlloc)
 	}
+
+	go func(){
+		select {
+		case <-ctx.Done():
+			if err := ctx.Err(); err != nil{
+				panic(err)
+			}
+		case err := <-webCrawler.ErrChan:
+			if err != nil{
+				panic(err)
+			}
+		}
+	}()
 }

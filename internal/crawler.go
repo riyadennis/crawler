@@ -3,8 +3,6 @@ package internal
 import (
 	"errors"
 	"fmt"
-	"sync"
-
 	"github.com/disiqueira/gotree"
 	"golang.org/x/net/context"
 )
@@ -25,6 +23,7 @@ func NewWebCrawler(url, topic string) (*webCrawler, error) {
 		Content: content,
 		SiteMap: siteMap,
 		Topic:   topic,
+		ErrChan: make(chan error, 1),
 	}, nil
 }
 
@@ -62,29 +61,22 @@ func (c *webCrawler) Crawl(ctx context.Context, source string, depth int) (<-cha
 // Display will listen to the channel and print results into  console
 func (c *webCrawler) Display(ctx context.Context, source string, depth int, ch <-chan map[int]map[int]string) {
 	tree := gotree.New(source)
-
-	var wg sync.WaitGroup
-	wg.Add(1)
-
-	go func() {
-		select {
-		case links := <-ch:
-			for i, dl := range links {
-				if i < depth {
-					child := tree.Add(dl[i])
-					for _, dl := range dl {
-						if len(dl) > 0 {
-							child.Add(dl)
-						}
-					}
+	for i, dl := range <-ch {
+		if i < depth {
+			child := tree.Add(dl[i])
+			for _, dl := range dl {
+				if len(dl) > 0 {
+					child.Add(dl)
 				}
 			}
-			fmt.Println(tree.Print())
-		case <-ctx.Done():
-			wg.Done()
-			return
 		}
-	}()
 
-	wg.Wait()
+	}
+	linkTree := tree.Print()
+	err := WriteToKafka(c.Topic, linkTree, source)
+	if err !=nil{
+		c.ErrChan <- err
+	}
+	fmt.Println(linkTree)
+	ctx.Done()
 }

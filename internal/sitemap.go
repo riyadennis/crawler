@@ -13,7 +13,7 @@ import (
 	"golang.org/x/net/html"
 )
 
-func siteMap(rootURL, topic string, reader io.ReadCloser) (map[int]string, error) {
+func siteMap(rootURL string, reader io.ReadCloser) (map[int]string, error) {
 	token := html.NewTokenizer(reader)
 	defer reader.Close()
 
@@ -45,7 +45,6 @@ func siteMap(rootURL, topic string, reader io.ReadCloser) (map[int]string, error
 				if link != "" {
 					if checkDomain(u.Host, link) {
 						links[i] = link
-						_ = writeToKafka(topic, link, u.Host)
 						i++
 					}
 				}
@@ -58,7 +57,7 @@ func siteMap(rootURL, topic string, reader io.ReadCloser) (map[int]string, error
 	return links, nil
 }
 
-func writeToKafka(topic, link, host string) error {
+func WriteToKafka(topic, link, host string) error {
 	producer, err := Producer([]string{"localhost:9092"})
 	if err != nil {
 		return err
