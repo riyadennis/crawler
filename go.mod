@@ -6,7 +6,7 @@ require (
 	github.com/Shopify/sarama v1.29.1
 	github.com/disiqueira/gotree v1.0.0
 	github.com/google/go-cmp v0.5.4
-	golang.org/x/net v0.0.0-20210614182718-04defd469f4e
+	golang.org/x/net v0.1.0
 )
 
 require (
@@ -24,5 +24,5 @@ require (
 	github.com/klauspost/compress v1.12.2 // indirect
 	github.com/pierrec/lz4 v2.6.0+incompatible // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
-	golang.org/x/crypto v0.0.0-20210616213533-5ff15b29337e // indirect
+	golang.org/x/crypto v0.1.0 // indirect
 )
